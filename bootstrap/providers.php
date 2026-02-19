@@ -6,4 +6,5 @@ return [
     App\Providers\TenancyServiceProvider::class,
     App\Providers\ModuleGateProvider::class,
     App\Modules\Ai\AiModuleServiceProvider::class,
+    App\Modules\Contacts\ContactsModuleServiceProvider::class,
 ];

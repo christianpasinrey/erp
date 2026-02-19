@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Link, usePage, router } from '@inertiajs/vue3';
-import { Building2, LayoutDashboard, LogOut, Settings, Bot, ChevronDown, Check } from 'lucide-vue-next';
+import { Building2, LayoutDashboard, LogOut, Settings, Bot, ChevronDown, Check, Users } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppShell from '@/components/AppShell.vue';
 import AppContent from '@/components/AppContent.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
@@ -28,10 +29,13 @@ withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
 
+const { t } = useI18n();
 const page = usePage();
 const { isCurrentUrl } = useCurrentUrl();
 const user = computed(() => page.props.auth?.user as { name: string; email: string } | undefined);
 const erp = computed(() => page.props.erp as SharedErpData | undefined);
+const permissions = computed(() => erp.value?.permissions ?? []);
+const canManageCompanies = computed(() => permissions.value.includes('*') || permissions.value.includes('companies.manage'));
 
 const currentCompany = computed(() => erp.value?.currentCompany);
 const companies = computed(() => erp.value?.companies ?? []);
@@ -40,6 +44,7 @@ const hasMultipleCompanies = computed(() => companies.value.length > 1);
 
 const moduleIcons: Record<string, typeof Bot> = {
     ai: Bot,
+    contacts: Users,
     settings: Settings,
 };
 
@@ -122,7 +127,7 @@ function switchCompany(companyId: number) {
 
                 <!-- Module navigation -->
                 <SidebarGroup v-if="moduleNav.length > 0" class="px-2 py-0">
-                    <SidebarGroupLabel>Modules</SidebarGroupLabel>
+                    <SidebarGroupLabel>{{ t('nav.modules') }}</SidebarGroupLabel>
                     <SidebarMenu>
                         <SidebarMenuItem v-for="item in moduleNav" :key="item.route">
                             <SidebarMenuButton
@@ -133,6 +138,25 @@ function switchCompany(companyId: number) {
                                 <Link :href="item.route">
                                     <component :is="getModuleIcon(item.module)" />
                                     <span>{{ item.label }}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarGroup>
+
+                <!-- Admin section -->
+                <SidebarGroup v-if="canManageCompanies" class="px-2 py-0">
+                    <SidebarGroupLabel>{{ t('nav.admin') }}</SidebarGroupLabel>
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                as-child
+                                :is-active="isCurrentUrl('/companies')"
+                                :tooltip="t('company.companies')"
+                            >
+                                <Link href="/companies">
+                                    <Building2 />
+                                    <span>{{ t('company.companies') }}</span>
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>

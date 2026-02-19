@@ -8,6 +8,23 @@ export type Company = {
     is_active: boolean;
 };
 
+export type CompanyFull = Company & {
+    tax_id: string | null;
+    locale: string;
+    timezone: string;
+    fiscal_year_start: number;
+    address: Record<string, string> | null;
+    phone: string | null;
+    email: string | null;
+    website: string | null;
+    settings: Record<string, unknown> | null;
+    parent_id: number | null;
+    users_count?: number;
+    users?: Array<{ id: number; name: string; email: string }>;
+    created_at: string;
+    updated_at: string;
+};
+
 export type ModuleInfo = {
     id: string;
     name: string;

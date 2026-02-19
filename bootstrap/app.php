@@ -6,6 +6,7 @@ use App\Http\Middleware\InitializeTenancyByDomainOrCentral;
 use App\Http\Middleware\RequireModule;
 use App\Http\Middleware\RequirePermission;
 use App\Http\Middleware\ResolveCompany;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            SetLocale::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
