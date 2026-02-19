@@ -6,6 +6,7 @@ namespace App\Modules\Contacts\Models;
 
 use App\Concerns\Auditable;
 use App\Concerns\BelongsToCompany;
+use Database\Factories\ContactFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +17,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contact extends Model
 {
+    /** @use HasFactory<ContactFactory> */
     use Auditable, BelongsToCompany, HasFactory, SoftDeletes;
+
+    protected static function newFactory(): ContactFactory
+    {
+        return ContactFactory::new();
+    }
 
     protected $fillable = [
         'company_id',
@@ -47,6 +54,21 @@ class Contact extends Model
             'custom_fields' => 'array',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Scope route model binding by current company (session-based).
+     *
+     * SubstituteBindings runs before ResolveCompany middleware,
+     * so we read company_id from session directly.
+     */
+    public function resolveRouteBinding($value, $field = null): ?self
+    {
+        $companyId = request()->session()->get('current_company_id');
+
+        return $this->where($field ?? $this->getRouteKeyName(), $value)
+            ->when($companyId, fn ($q) => $q->withoutGlobalScope('company')->where('company_id', $companyId))
+            ->firstOrFail();
     }
 
     public function organization(): BelongsTo

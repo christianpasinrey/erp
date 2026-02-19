@@ -5,12 +5,20 @@ declare(strict_types=1);
 namespace App\Modules\Contacts\Models;
 
 use App\Concerns\BelongsToCompany;
+use Database\Factories\AddressFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Address extends Model
 {
-    use BelongsToCompany;
+    /** @use HasFactory<AddressFactory> */
+    use BelongsToCompany, HasFactory;
+
+    protected static function newFactory(): AddressFactory
+    {
+        return AddressFactory::new();
+    }
 
     protected $fillable = [
         'company_id',

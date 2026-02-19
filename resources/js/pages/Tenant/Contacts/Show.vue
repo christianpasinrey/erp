@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { Pencil, Trash2, Mail, Phone, Globe, MapPin } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { Pencil, Trash2, Mail, Phone, Globe, Plus } from 'lucide-vue-next';
+import { reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import TenantLayout from '@/layouts/tenant/TenantLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Contact } from '@/types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import AddressList from '@/components/contacts/AddressList.vue';
+import AddressMap from '@/components/contacts/AddressMap.vue';
+import AddressForm from '@/components/contacts/AddressForm.vue';
+import type { Contact, Address } from '@/types';
 
 const { t } = useI18n();
 
@@ -16,6 +20,70 @@ const props = defineProps<{
 }>();
 
 const activeTab = ref<'details' | 'addresses' | 'members'>('details');
+const showAddressDialog = ref(false);
+const editingAddress = ref<Address | null>(null);
+
+const emptyAddress = () => ({
+    label: '',
+    address_line_1: '',
+    address_line_2: '',
+    city: '',
+    state: '',
+    postal_code: '',
+    country_code: 'ES',
+    latitude: '' as string | number,
+    longitude: '' as string | number,
+    is_primary: false,
+    type: 'main',
+});
+
+const addressFormData = reactive(emptyAddress());
+
+function openNewAddress() {
+    editingAddress.value = null;
+    Object.assign(addressFormData, emptyAddress());
+    showAddressDialog.value = true;
+}
+
+function openEditAddress(address: Address) {
+    editingAddress.value = address;
+    Object.assign(addressFormData, {
+        label: address.label ?? '',
+        address_line_1: address.address_line_1,
+        address_line_2: address.address_line_2 ?? '',
+        city: address.city ?? '',
+        state: address.state ?? '',
+        postal_code: address.postal_code ?? '',
+        country_code: address.country_code,
+        latitude: address.latitude ?? '',
+        longitude: address.longitude ?? '',
+        is_primary: address.is_primary,
+        type: address.type,
+    });
+    showAddressDialog.value = true;
+}
+
+function saveAddress() {
+    const data = { ...addressFormData };
+    if (data.latitude === '') data.latitude = null as never;
+    if (data.longitude === '') data.longitude = null as never;
+
+    if (editingAddress.value) {
+        router.put(`/contacts/${props.contact.id}/addresses/${editingAddress.value.id}`, data as never, {
+            onSuccess: () => { showAddressDialog.value = false; },
+        });
+    } else {
+        router.post(`/contacts/${props.contact.id}/addresses`, data as never, {
+            onSuccess: () => { showAddressDialog.value = false; },
+        });
+    }
+}
+
+function deleteAddress(address: Address) {
+    if (confirm(t('addresses.deleteConfirm'))) {
+        router.delete(`/contacts/${props.contact.id}/addresses/${address.id}`);
+    }
+}
 
 function deleteContact() {
     if (confirm(t('contacts.deleteConfirm'))) {
@@ -144,34 +212,21 @@ function deleteContact() {
             </div>
 
             <!-- Addresses tab -->
-            <div v-if="activeTab === 'addresses'">
-                <div v-if="contact.addresses?.length" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card v-for="address in contact.addresses" :key="address.id">
-                        <CardContent class="pt-6">
-                            <div class="flex items-start justify-between">
-                                <div class="flex items-start gap-2">
-                                    <MapPin class="size-4 mt-0.5 text-muted-foreground" />
-                                    <div>
-                                        <p v-if="address.label" class="font-medium text-sm">{{ address.label }}</p>
-                                        <p class="text-sm">{{ address.address_line_1 }}</p>
-                                        <p v-if="address.address_line_2" class="text-sm">{{ address.address_line_2 }}</p>
-                                        <p class="text-sm text-muted-foreground">
-                                            {{ [address.city, address.state, address.postal_code].filter(Boolean).join(', ') }}
-                                        </p>
-                                        <p class="text-sm text-muted-foreground">{{ address.country_code }}</p>
-                                    </div>
-                                </div>
-                                <div class="flex gap-1">
-                                    <Badge v-if="address.is_primary" variant="default">{{ t('common.primary') }}</Badge>
-                                    <Badge variant="outline">{{ address.type }}</Badge>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+            <div v-if="activeTab === 'addresses'" class="space-y-4">
+                <div class="flex justify-end">
+                    <Button @click="openNewAddress">
+                        <Plus class="size-4 mr-2" />
+                        {{ t('addresses.newAddress') }}
+                    </Button>
                 </div>
-                <div v-else class="text-center py-8 text-muted-foreground">
-                    {{ t('common.noResults') }}
-                </div>
+
+                <AddressMap v-if="contact.addresses?.length" :addresses="contact.addresses" />
+
+                <AddressList
+                    :addresses="contact.addresses ?? []"
+                    @edit="openEditAddress"
+                    @delete="deleteAddress"
+                />
             </div>
 
             <!-- Members tab -->
@@ -205,5 +260,19 @@ function deleteContact() {
                 </div>
             </div>
         </div>
+
+        <!-- Address Dialog -->
+        <Dialog v-model:open="showAddressDialog">
+            <DialogContent class="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>{{ editingAddress ? t('addresses.editAddress') : t('addresses.newAddress') }}</DialogTitle>
+                </DialogHeader>
+                <AddressForm v-model="addressFormData" />
+                <DialogFooter>
+                    <Button variant="outline" @click="showAddressDialog = false">{{ t('common.cancel') }}</Button>
+                    <Button @click="saveAddress">{{ t('common.save') }}</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </TenantLayout>
 </template>
