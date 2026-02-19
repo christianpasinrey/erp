@@ -1,0 +1,219 @@
+/* ============================================
+   LIQUID GLASS — Apple-Inspired Effect
+   Adapted from LifeOS glass system.
+
+   Real glass refraction via SVG displacement filter:
+   - ::before  → backdrop blur + SVG distortion (refraction)
+   - ::after   → inset edge shine (reflection)
+   ============================================ */
+
+/* --- Design tokens --- */
+:root {
+    --glass-backdrop: blur(6px) saturate(110%);
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-radius: 24px;
+    --glass-shadow: 0 6px 24px rgba(0, 0, 0, 0.10);
+    --glass-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================
+   1. BASE LIQUID GLASS
+   ========================================== */
+.liquid-glass {
+    position: relative;
+    background-color: var(--glass-bg);
+    border-radius: var(--glass-radius);
+    border: none;
+    box-shadow: var(--glass-shadow);
+    isolation: isolate;
+}
+
+.liquid-glass > * {
+    position: relative;
+    z-index: 2;
+}
+
+.liquid-glass,
+.liquid-glass * {
+    text-shadow: var(--glass-text-shadow);
+}
+
+.liquid-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    backdrop-filter: var(--glass-backdrop);
+    filter: url(#glass-distortion);
+    z-index: -1;
+}
+
+.liquid-glass::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+        inset 1px 0 0 0 rgba(255, 255, 255, 0.06),
+        inset 0 -1px 0 0 rgba(0, 0, 0, 0.20),
+        inset -1px 0 0 0 rgba(0, 0, 0, 0.12),
+        inset 0 1px 4px 0 rgba(255, 255, 255, 0.04);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ==========================================
+   2. VARIANTS
+   ========================================== */
+
+.liquid-glass-dock {
+    --glass-backdrop: blur(8px) saturate(110%);
+    --glass-radius: 22px;
+    --glass-bg: rgba(255, 255, 255, 0.10);
+    --glass-shadow:
+        0 12px 44px rgba(0, 0, 0, 0.12),
+        0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.liquid-glass-panel {
+    --glass-backdrop: blur(8px) saturate(110%);
+    --glass-radius: 20px;
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-shadow:
+        0 16px 48px rgba(0, 0, 0, 0.1),
+        0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.liquid-glass-chip {
+    --glass-backdrop: blur(6px) saturate(110%);
+    --glass-radius: 14px;
+    --glass-bg: rgba(255, 255, 255, 0.06);
+    --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.liquid-glass-sidebar {
+    --glass-backdrop: blur(8px) saturate(110%);
+    --glass-radius: 20px;
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.1),
+        0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.liquid-glass-card {
+    --glass-backdrop: blur(6px) saturate(110%);
+    --glass-radius: 16px;
+    --glass-bg: rgba(255, 255, 255, 0.06);
+    --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* ==========================================
+   3. INTERACTIVE GLASS BUTTON
+   ========================================== */
+.glass-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid transparent;
+    color: var(--color-muted-foreground);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.glass-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-foreground);
+    transform: translateY(-3px) scale(1.08);
+    box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.25),
+        0 0 12px rgba(255, 255, 255, 0.03);
+}
+
+.glass-btn:active {
+    transform: translateY(0) scale(0.95);
+    transition-duration: 0.1s;
+}
+
+.glass-btn.active {
+    background: rgba(var(--primary-rgb, 0 0 0), 0.12);
+    border-color: rgba(var(--primary-rgb, 0 0 0), 0.2);
+    color: var(--color-primary);
+}
+
+/* ==========================================
+   4. TRANSITIONS
+   ========================================== */
+
+.slide-right-enter-active,
+.slide-right-leave-active {
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide-right-enter-from,
+.slide-right-leave-to {
+    opacity: 0;
+    transform: translateX(1rem);
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide-up-enter-from,
+.slide-up-leave-to {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+/* ==========================================
+   5. SCROLLBAR
+   ========================================== */
+.glass-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.glass-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.glass-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+}
+.glass-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Firefox */
+.glass-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+/* ==========================================
+   6. FALLBACK
+   ========================================== */
+@supports not (backdrop-filter: blur(1px)) {
+    .liquid-glass {
+        background: rgba(15, 23, 42, 0.85);
+    }
+    .liquid-glass::before {
+        display: none;
+    }
+}
