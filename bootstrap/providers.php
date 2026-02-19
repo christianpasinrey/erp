@@ -5,4 +5,5 @@ return [
     App\Providers\FortifyServiceProvider::class,
     App\Providers\TenancyServiceProvider::class,
     App\Providers\ModuleGateProvider::class,
+    App\Modules\Ai\AiModuleServiceProvider::class,
 ];

@@ -18,8 +18,14 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Redirect dashboard to landlord
-    Route::get('dashboard', fn () => redirect()->route('landlord.dashboard'))->name('dashboard');
+    // Redirect to appropriate dashboard based on context
+    Route::get('dashboard', function () {
+        if (tenancy()->initialized) {
+            return redirect('/app');
+        }
+
+        return redirect()->route('landlord.dashboard');
+    })->name('dashboard');
 
     Route::prefix('landlord')->name('landlord.')->group(function () {
         Route::get('/', LandlordDashboardController::class)->name('dashboard');

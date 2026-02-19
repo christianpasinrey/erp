@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\InitializeTenancyByDomainOrCentral;
 use App\Http\Middleware\RequireModule;
 use App\Http\Middleware\RequirePermission;
 use App\Http\Middleware\ResolveCompany;
@@ -18,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+
+        $middleware->web(prepend: [
+            InitializeTenancyByDomainOrCentral::class,
+        ]);
 
         $middleware->web(append: [
             HandleAppearance::class,

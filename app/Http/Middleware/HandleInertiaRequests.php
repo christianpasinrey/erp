@@ -47,6 +47,11 @@ class HandleInertiaRequests extends Middleware
             return null;
         }
 
+        // Skip ERP data on central domain (no tenant context)
+        if (! tenancy()->initialized) {
+            return null;
+        }
+
         $companyContext = app(CompanyContext::class);
         $moduleRegistry = app(ModuleRegistry::class);
         $permissionResolver = app(PermissionResolver::class);

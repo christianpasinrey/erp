@@ -23,7 +23,7 @@ const props = defineProps<{
 const form = useForm({
     name: props.tenant.name,
     plan: props.tenant.plan,
-    max_users: props.tenant.max_users,
+    max_users: props.tenant.max_users ?? undefined,
     max_companies: props.tenant.max_companies,
     is_active: props.tenant.is_active,
     trial_ends_at: props.tenant.trial_ends_at ?? '',

@@ -10,7 +10,7 @@ const form = useForm({
     name: '',
     domain: '',
     plan: 'starter',
-    max_users: null as number | null,
+    max_users: undefined as number | undefined,
     max_companies: 1,
     trial_ends_at: '',
 });
